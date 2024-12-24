@@ -6,11 +6,11 @@ pub struct JoinMenu;
 
 impl Plugin for JoinMenu {
     fn build(&self, app: &mut App) {
-        app.add_plugins(DefaultPlugins)
+        app
         // Only run the app when there is user input. This will significantly reduce CPU/GPU use.
-        .add_systems(Startup, setup_menu)
-        .add_systems(Update, input_system)
-        .add_systems(Update, button_system)
+        .add_systems(OnEnter(crate::GameState::LobbyList), setup_menu)
+        .add_systems(Update, input_system.run_if(in_state(crate::GameState::LobbyList)))
+        .add_systems(Update, button_system.run_if(in_state(crate::GameState::LobbyList)))
         .insert_resource(IPInput("".to_string()))
         .insert_state(InputState::NotInput)
         // .add_systems(Update, button_system)
@@ -37,8 +37,6 @@ enum TextType {
 
 
 fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // Camera
-    commands.spawn((Camera2d, IsDefaultUiCamera, UiBoxShadowSamples(6)));
 
     // root node
     commands

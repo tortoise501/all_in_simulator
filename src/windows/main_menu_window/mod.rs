@@ -6,10 +6,10 @@ pub struct MainMenu;
 
 impl Plugin for MainMenu {
     fn build(&self, app: &mut App) {
-        app.add_plugins(DefaultPlugins)
+        app
         // Only run the app when there is user input. This will significantly reduce CPU/GPU use.
-        .add_systems(Startup, setup_menu)
-        .add_systems(Update, button_system);
+        .add_systems(OnEnter(crate::GameState::MainMenu), setup_menu.run_if(in_state(crate::GameState::MainMenu)))
+        .add_systems(Update, button_system.run_if(in_state(crate::GameState::MainMenu)));
 
     }
 }
@@ -24,7 +24,7 @@ enum ButtonType {
 
 fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Camera
-    commands.spawn((Camera2d, IsDefaultUiCamera, UiBoxShadowSamples(6)));
+    commands.spawn((Camera2d, IsDefaultUiCamera, UiBoxShadowSamples(6)));//TODO do it properly
 
     // root node
     commands
@@ -59,6 +59,7 @@ fn button_system(
         ),
         (Changed<Interaction>, With<Button>),
     >,
+    mut next_game_state: ResMut<NextState<crate::GameState>> 
 ) {
     for (interaction, mut color, mut border_color, children, button_type) in &mut interaction_query {
         match *interaction {
@@ -67,10 +68,17 @@ fn button_system(
                 border_color.0 = RED.into();
                 match button_type {
                     ButtonType::Host => {
-                        println!("HOST")
+                        println!("HOST");
+                        next_game_state.set(crate::GameState::Lobby);//TODO HOST GAME
                     },
-                    ButtonType::Join => println!("JOIN"),
-                    ButtonType::Exit => println!("Exit"),
+                    ButtonType::Join => {
+                        println!("JOIN");
+                        next_game_state.set(crate::GameState::LobbyList);
+                    },
+                    ButtonType::Exit => {
+                        println!("Exit");
+                        todo!("Exiting")//TODO EXIT GAME
+                    },
                 }
             }
             Interaction::Hovered => {
