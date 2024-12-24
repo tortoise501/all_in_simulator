@@ -24,7 +24,6 @@ enum ButtonType {
 
 fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Camera
-    commands.spawn((Camera2d, IsDefaultUiCamera, UiBoxShadowSamples(6)));//TODO do it properly
 
     // root node
     commands

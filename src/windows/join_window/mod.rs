@@ -138,13 +138,16 @@ fn button_system (
     >,
     input_state: Res<State<InputState>>,
     mut next_input_state: ResMut<NextState<InputState>>,
+    mut next_game_state: ResMut<NextState<crate::GameState>>
 ) {
     for (interaction, children, button_type) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 match button_type {
                     ButtonType::Join => todo!(),
-                    ButtonType::Exit => todo!(),
+                    ButtonType::Exit => {
+                        next_game_state.set(crate::GameState::MainMenu);
+                    },
                     ButtonType::IPAddressInput if *input_state.get() != InputState::IP => next_input_state.set(InputState::IP),
                     ButtonType::PortInput if *input_state.get() != InputState::Port => next_input_state.set(InputState::Port),
                     ButtonType::PasswordInput if *input_state.get() != InputState::Password => next_input_state.set(InputState::Password),
