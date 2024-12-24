@@ -1,4 +1,4 @@
-use std::{f32::consts::PI, net::Ipv4Addr};
+use std::{f32::consts::PI, net::{IpAddr, Ipv4Addr}, ops::Deref};
 
 use bevy::{a11y::AccessibilityNode, color::palettes::css::{DARK_GRAY, LIME, RED}, input::{keyboard::{Key, KeyboardInput}, ButtonState}, prelude::*, text::TextWriter, ui::widget::NodeImageMode};
 
@@ -12,6 +12,8 @@ impl Plugin for JoinMenu {
         .add_systems(Update, input_system.run_if(in_state(crate::GameState::LobbyList)))
         .add_systems(Update, button_system.run_if(in_state(crate::GameState::LobbyList)))
         .add_systems(Update, input_color_system)
+        .add_systems(Update, check_input_and_connect)
+        .add_event::<ConnectTo>()
         .insert_resource(IPInput("".to_string()))
         .insert_resource(PortInput("".to_string()))
         .insert_resource(PasswordInput("".to_string()))
@@ -242,14 +244,18 @@ fn button_system (
     >,
     input_state: Res<State<InputState>>,
     mut next_input_state: ResMut<NextState<InputState>>,
-    mut next_game_state: ResMut<NextState<crate::GameState>>
+    mut next_game_state: ResMut<NextState<crate::GameState>>,
+    mut ev_check_and_connect: EventWriter<ConnectTo>,
+    input_ip: Res<IPInput>,
+    input_port: Res<PortInput>,
+    input_password: Res<PasswordInput>,
 ) {
     for (interaction, children, button_type) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 println!("pressed {:?} state is {:?}",button_type,input_state.get());
                 match button_type {
-                    InteractiveType::Join => todo!(),
+                    InteractiveType::Join => {ev_check_and_connect.send(ConnectTo(input_ip.clone(),input_port.clone(),input_password.clone()));},
                     InteractiveType::Exit => {
                         next_game_state.set(crate::GameState::MainMenu);
                     },
@@ -267,14 +273,60 @@ fn button_system (
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Clone)]
 struct IPInput(String);
 
-#[derive(Resource)]
+#[derive(Resource, Clone)]
 struct PortInput(String);
 
-#[derive(Resource)]
+#[derive(Resource, Clone)]
 struct PasswordInput(String);
+
+
+
+fn check_input_and_connect (
+    mut ev_check_and_connect: EventReader<ConnectTo>
+) {
+    for ev in ev_check_and_connect.read() {
+        let target_lobby = TargetLobbyData {
+            address: match ev.0.0.parse::<Ipv4Addr>() {
+                Ok(addr) => std::net::IpAddr::V4(addr),
+                Err(err) => {
+                    println!("{}",err);
+                    return;
+                },
+            },
+            port: match ev.1.0.parse::<i16>() {
+                Ok(p) => p,
+                Err(err) => {
+                    println!("{}",err);
+                    return;
+                },
+            },
+            password: ev.2.0.clone(),
+        };
+        println!("{:?}",target_lobby);
+        //TODO connect to server
+    }
+}
+
+#[derive(Event)]
+struct ConnectTo(IPInput,PortInput,PasswordInput);
+
+
+#[derive(Debug)]
+struct TargetLobbyData {
+    address: IpAddr,
+    port: i16,
+    password: String,
+}
+
+
+
+
+
+
+
 
 #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
 enum InputState {
