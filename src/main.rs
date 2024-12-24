@@ -1,9 +1,8 @@
 mod windows;
-use windows::main_menu_window;
 // mod windows::main_menu;
 use bevy::prelude::*;
 fn main() {
-    let _app = App::new().add_plugins(main_menu_window::MainMenu).run();
+    let _app = App::new().add_plugins(windows::join_window::JoinMenu).run();
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
