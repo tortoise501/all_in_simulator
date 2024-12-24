@@ -11,7 +11,10 @@ impl Plugin for JoinMenu {
         .add_systems(OnEnter(crate::GameState::LobbyList), setup_menu)
         .add_systems(Update, input_system.run_if(in_state(crate::GameState::LobbyList)))
         .add_systems(Update, button_system.run_if(in_state(crate::GameState::LobbyList)))
+        .add_systems(Update, input_color_system)
         .insert_resource(IPInput("".to_string()))
+        .insert_resource(PortInput("".to_string()))
+        .insert_resource(PasswordInput("".to_string()))
         .insert_state(InputState::NotInput)
         // .add_systems(Update, button_system)
         ;
@@ -19,14 +22,18 @@ impl Plugin for JoinMenu {
     }
 }
 
-#[derive(Component)]
-enum ButtonType {
+#[derive(Component, PartialEq, Eq, Debug)]
+
+enum InteractiveType {
     Join,
     Exit,
     IPAddressInput,
     PortInput,
     PasswordInput,
 }
+
+#[derive(Component)]
+struct Input;
 
 #[derive(Component)]
 enum TextType {
@@ -56,8 +63,9 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             //Ip input field
             parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter IP of your computer you want to join.".to_string()));
             parent.spawn((
+                Input,
                 Button,
-                ButtonType::IPAddressInput,
+                InteractiveType::IPAddressInput,
                 Node {
                     width: Val::Px(500.0),
                     height: Val::Px(50.0),
@@ -86,8 +94,9 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             //Port input field
             parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter network Port that server uses.".to_string()));
             parent.spawn((
+                Input,
                 Button,
-                ButtonType::PortInput,
+                InteractiveType::PortInput,
                 Node {
                     width: Val::Px(500.0),
                     height: Val::Px(50.0),
@@ -116,8 +125,9 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             //Password input field
             parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter lobby password".to_string()));
             parent.spawn((
+                Input,
                 Button,
-                ButtonType::PasswordInput,
+                InteractiveType::PasswordInput,
                 Node {
                     width: Val::Px(500.0),
                     height: Val::Px(50.0),
@@ -144,8 +154,8 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             );
 
 
-            parent.spawn((gen_generic_button(),ButtonType::Join)).with_child(gen_generic_button_text("Join".to_string()));
-            parent.spawn((gen_generic_button(),ButtonType::Exit)).with_child(gen_generic_button_text("Exit".to_string()));
+            parent.spawn((gen_generic_button(),InteractiveType::Join)).with_child(gen_generic_button_text("Join".to_string()));
+            parent.spawn((gen_generic_button(),InteractiveType::Exit)).with_child(gen_generic_button_text("Exit".to_string()));
         })
         ;
 }
@@ -153,6 +163,8 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn input_system(
     mut evr_kbd: EventReader<KeyboardInput>,
     mut input_ip: ResMut<IPInput>,
+    mut input_port: ResMut<PortInput>,
+    mut input_password: ResMut<PasswordInput>,
     input_state: Res<State<InputState>>,
     mut text_q: Query<(&mut Text, &TextType)>,
 ) {
@@ -169,28 +181,51 @@ fn input_system(
                     continue;
                 }
                 match input_state.get() {
-                    InputState::NotInput => todo!(),
+                    InputState::NotInput => {},
                     InputState::IP => input_ip.0.push_str(&input),
-                    InputState::Port => todo!(),
-                    InputState::Password => todo!(),
+                    InputState::Port => input_port.0.push_str(&input),
+                    InputState::Password => input_password.0.push_str(&input),
                 }
             },
             Key::Backspace => {
-                input_ip.0.pop();
+                _ = match input_state.get() {
+                    InputState::NotInput => {},
+                    InputState::IP => {input_ip.0.pop();},
+                    InputState::Port => {input_port.0.pop();},
+                    InputState::Password => {input_password.0.pop();},
+                };
             }
             _ => {}
         }
         for (mut text, text_type) in &mut text_q {
             match text_type {
                 TextType::IP => text.0 = input_ip.0.to_string(),
-                TextType::Port => todo!(),
-                TextType::Password => todo!(),
+                TextType::Port => text.0 = input_port.0.to_string(),
+                TextType::Password => text.0 = String::from_utf8(vec![b'*'; input_password.0.len()]).unwrap(),
             }
         }
     }
 }
 
-
+fn input_color_system(
+    selected_input: Res<State<InputState>>,
+    mut input_fields_q: Query<
+    (
+        &mut BorderColor,
+        &Children,
+        &InteractiveType
+    ),
+    (With<Input>),>
+) {
+    for (mut border_color, children, button_type) in &mut input_fields_q {
+        match selected_input.get() {
+            InputState::IP if *button_type == InteractiveType::IPAddressInput => {border_color.0 = Color::linear_rgb(0.5, 0.5, 0.5)},
+            InputState::Port if *button_type == InteractiveType::PortInput => {border_color.0 = Color::linear_rgb(0.5, 0.5, 0.5)},
+            InputState::Password if *button_type == InteractiveType::PasswordInput => {border_color.0 = Color::linear_rgb(0.5, 0.5, 0.5)},
+            _ => border_color.0 = Color::BLACK,
+        }
+    }
+}
 
 
 
@@ -201,9 +236,9 @@ fn button_system (
         (
             &Interaction,
             &Children,
-            &ButtonType,
+            &InteractiveType,
         ),
-        (Changed<Interaction>, With<Button>),
+        (Changed<Interaction>),
     >,
     input_state: Res<State<InputState>>,
     mut next_input_state: ResMut<NextState<InputState>>,
@@ -212,14 +247,15 @@ fn button_system (
     for (interaction, children, button_type) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
+                println!("pressed {:?} state is {:?}",button_type,input_state.get());
                 match button_type {
-                    ButtonType::Join => todo!(),
-                    ButtonType::Exit => {
+                    InteractiveType::Join => todo!(),
+                    InteractiveType::Exit => {
                         next_game_state.set(crate::GameState::MainMenu);
                     },
-                    ButtonType::IPAddressInput if *input_state.get() != InputState::IP => next_input_state.set(InputState::IP),
-                    ButtonType::PortInput if *input_state.get() != InputState::Port => next_input_state.set(InputState::Port),
-                    ButtonType::PasswordInput if *input_state.get() != InputState::Password => next_input_state.set(InputState::Password),
+                    InteractiveType::IPAddressInput if *input_state.get() != InputState::IP => next_input_state.set(InputState::IP),
+                    InteractiveType::PortInput if *input_state.get() != InputState::Port => next_input_state.set(InputState::Port),
+                    InteractiveType::PasswordInput if *input_state.get() != InputState::Password => next_input_state.set(InputState::Password),
                     _ => {}
                 }
             }
@@ -233,6 +269,12 @@ fn button_system (
 
 #[derive(Resource)]
 struct IPInput(String);
+
+#[derive(Resource)]
+struct PortInput(String);
+
+#[derive(Resource)]
+struct PasswordInput(String);
 
 #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
 enum InputState {
