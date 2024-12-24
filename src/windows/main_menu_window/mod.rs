@@ -40,9 +40,9 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         }))
         .with_children(|parent| {
-            parent.spawn((gen_generic_button(),ButtonType::Host)).with_child(gen_generic_text("Host".to_string()));
-            parent.spawn((gen_generic_button(),ButtonType::Join)).with_child(gen_generic_text("Join".to_string()));
-            parent.spawn((gen_generic_button(),ButtonType::Exit)).with_child(gen_generic_text("Exit".to_string()));
+            parent.spawn((gen_generic_button(),ButtonType::Host)).with_child(gen_generic_button_text("Host".to_string()));
+            parent.spawn((gen_generic_button(),ButtonType::Join)).with_child(gen_generic_button_text("Join".to_string()));
+            parent.spawn((gen_generic_button(),ButtonType::Exit)).with_child(gen_generic_button_text("Exit".to_string()));
         })
         ;
 }
@@ -101,4 +101,4 @@ const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 
 use super::gen_generic_button;
-use super::gen_generic_text;
+use super::gen_generic_button_text;

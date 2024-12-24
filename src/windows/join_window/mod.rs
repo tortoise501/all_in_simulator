@@ -53,6 +53,8 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         }))
         .with_children(|parent| {
+            //Ip input field
+            parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter IP of your computer you want to join.".to_string()));
             parent.spawn((
                 Button,
                 ButtonType::IPAddressInput,
@@ -77,11 +79,73 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                         font_size: 33.0,
                         ..default()
                     },
-                    TextColor(Color::srgb(0.9, 0.9, 0.9)),
+                    TextColor(Color::srgb(0., 0., 0.)),
                 )
             );
-            parent.spawn((gen_generic_button(),ButtonType::Join)).with_child(gen_generic_text("Join".to_string()));
-            parent.spawn((gen_generic_button(),ButtonType::Exit)).with_child(gen_generic_text("Exit".to_string()));
+
+            //Port input field
+            parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter network Port that server uses.".to_string()));
+            parent.spawn((
+                Button,
+                ButtonType::PortInput,
+                Node {
+                    width: Val::Px(500.0),
+                    height: Val::Px(50.0),
+                    border: UiRect::all(Val::Px(5.0)),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                BorderColor(Color::BLACK),
+                BackgroundColor(Color::linear_rgb(100., 250., 200.)),
+        
+            )).with_child(
+                (
+                    TextType::Port,
+                    Text::new(""),
+                    TextFont {
+                        font_size: 33.0,
+                        ..default()
+                    },
+                    TextColor(Color::srgb(0., 0., 0.)),
+                )
+            );
+
+            //Password input field
+            parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter lobby password".to_string()));
+            parent.spawn((
+                Button,
+                ButtonType::PasswordInput,
+                Node {
+                    width: Val::Px(500.0),
+                    height: Val::Px(50.0),
+                    border: UiRect::all(Val::Px(5.0)),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                BorderColor(Color::BLACK),
+                BackgroundColor(Color::linear_rgb(100., 250., 200.)),
+        
+            )).with_child(
+                (
+                    TextType::Password,
+                    Text::new(""),
+                    TextFont {
+                        font_size: 33.0,
+                        ..default()
+                    },
+                    TextColor(Color::srgb(0., 0., 0.)),
+                )
+            );
+
+
+            parent.spawn((gen_generic_button(),ButtonType::Join)).with_child(gen_generic_button_text("Join".to_string()));
+            parent.spawn((gen_generic_button(),ButtonType::Exit)).with_child(gen_generic_button_text("Exit".to_string()));
         })
         ;
 }
@@ -125,6 +189,11 @@ fn input_system(
         }
     }
 }
+
+
+
+
+
 
 
 fn button_system (
@@ -174,5 +243,5 @@ enum InputState {
     Password,
 }
 
-use super::gen_generic_button;
-use super::gen_generic_text;
+use super::{gen_generic_button, gen_generic_description_text, gen_generic_node};
+use super::gen_generic_button_text;

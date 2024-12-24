@@ -33,7 +33,35 @@ fn gen_generic_button() -> impl Bundle {
 
     )
 }
-fn gen_generic_text(text:String) -> impl Bundle {
+
+fn gen_generic_button_text(text:String) -> impl Bundle {
+    (
+        Text::new(text),
+        TextFont {
+            font_size: 33.0,
+            ..default()
+        },
+        TextColor(Color::srgb(0.9, 0.9, 0.9)),
+    )
+}
+
+fn gen_generic_node() -> impl Bundle {
+    (
+        Node {
+            border: UiRect::all(Val::Px(5.0)),
+            // horizontally center child text
+            justify_content: JustifyContent::Center,
+            // vertically center child text
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        BorderColor(Color::BLACK),
+        BorderRadius::MAX,
+        BackgroundColor(NORMAL_BUTTON),
+    )
+}
+
+fn gen_generic_description_text(text:String) -> impl Bundle {
     (
         Text::new(text),
         TextFont {
