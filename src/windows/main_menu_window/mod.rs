@@ -23,9 +23,6 @@ enum ButtonType {
 
 
 fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // Camera
-
-    // root node
     commands
         .spawn((
             Name::new("Button"),
