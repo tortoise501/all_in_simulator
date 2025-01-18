@@ -8,7 +8,6 @@ pub struct JoinMenu;
 impl Plugin for JoinMenu {
     fn build(&self, app: &mut App) {
         app
-        // Only run the app when there is user input. This will significantly reduce CPU/GPU use.
         .add_systems(OnEnter(crate::GameState::LobbyList), systems::startup::setup_system)
         .add_systems(Update, systems::ui_backend::input_system.run_if(in_state(crate::GameState::LobbyList)))
         .add_systems(Update, systems::ui_backend::button_system.run_if(in_state(crate::GameState::LobbyList)))
@@ -19,7 +18,6 @@ impl Plugin for JoinMenu {
         .insert_resource(PortInput("".to_string()))
         .insert_resource(PasswordInput("".to_string()))
         .insert_state(InputState::NotInput)
-        // .add_systems(Update, button_system)
         ;
 
     }
@@ -61,12 +59,7 @@ struct PasswordInput(String);
 
 
 
-#[derive(Debug)]
-struct TargetLobbyData {
-    address: IpAddr,
-    port: i16,
-    password: String,
-}
+
 
 
 

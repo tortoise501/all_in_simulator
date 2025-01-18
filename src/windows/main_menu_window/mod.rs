@@ -64,15 +64,15 @@ fn button_system(
                 border_color.0 = RED.into();
                 match button_type {
                     ButtonType::Host => {
-                        println!("HOST");
+                        info!("HOST");
                         next_game_state.set(crate::GameState::Lobby);//TODO HOST GAME
                     },
                     ButtonType::Join => {
-                        println!("JOIN");
+                        info!("JOIN");
                         next_game_state.set(crate::GameState::LobbyList);
                     },
                     ButtonType::Exit => {
-                        println!("Exit");
+                        info!("Exit");
                         todo!("Exiting")//TODO EXIT GAME
                     },
                 }

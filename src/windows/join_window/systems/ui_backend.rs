@@ -69,9 +69,8 @@ pub fn button_system (
     for (interaction, children, button_type) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                println!("pressed {:?} state is {:?}",button_type,input_state.get());
                 match button_type {
-                    InteractiveType::Join => {ev_check_and_connect.send(events::ConnectTo(input_ip.clone(),input_port.clone(),input_password.clone()));},
+                    InteractiveType::Join => {info!("Join");ev_check_and_connect.send(events::ConnectTo(input_ip.clone(),input_port.clone(),input_password.clone()));},
                     InteractiveType::Exit => {
                         next_game_state.set(crate::GameState::MainMenu);
                     },
