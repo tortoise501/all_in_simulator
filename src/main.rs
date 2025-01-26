@@ -17,6 +17,7 @@ fn main() {
     .insert_state(GameState::MainMenu).enable_state_scoped_entities::<GameState>()
     .insert_state(networking::HostState::default())
     .add_event::<global_events::ConnectToServer>()
+    .add_event::<global_events::CreateServer>()
     .run();
 }
 

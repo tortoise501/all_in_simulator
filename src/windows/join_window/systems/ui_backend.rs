@@ -1,5 +1,7 @@
 use bevy::{input::keyboard::{Key, KeyboardInput}, prelude::*};
 
+use crate::networking::HostState;
+
 use super::*;
 
 pub fn input_system(
@@ -61,6 +63,7 @@ pub fn button_system (
     input_state: Res<State<InputState>>,
     mut next_input_state: ResMut<NextState<InputState>>,
     mut next_game_state: ResMut<NextState<crate::GameState>>,
+    mut next_host_state: ResMut<NextState<HostState>>,
     mut ev_check_and_connect: EventWriter<events::ConnectTo>,
     input_ip: Res<IPInput>,
     input_port: Res<PortInput>,
@@ -70,7 +73,11 @@ pub fn button_system (
         match *interaction {
             Interaction::Pressed => {
                 match button_type {
-                    InteractiveType::Join => {info!("Join");ev_check_and_connect.send(events::ConnectTo(input_ip.clone(),input_port.clone(),input_password.clone()));},
+                    InteractiveType::Join => {
+                        info!("Join");
+                        ev_check_and_connect.send(events::ConnectTo(input_ip.clone(),input_port.clone(),input_password.clone()));
+                        next_host_state.set(HostState::Client);
+                    },
                     InteractiveType::Exit => {
                         next_game_state.set(crate::GameState::MainMenu);
                     },

@@ -1,4 +1,4 @@
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use bevy::prelude::*;
 pub(super) mod client;
@@ -10,8 +10,7 @@ struct TestChannel;
 
 #[derive(Debug)]
 pub struct TargetLobbyData {
-    pub address: Ipv4Addr,
-    pub port: u16,
+    pub socket: SocketAddr,
     pub password: String,
 }
 

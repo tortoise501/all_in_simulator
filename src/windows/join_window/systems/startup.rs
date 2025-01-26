@@ -108,10 +108,13 @@ pub fn setup_system(mut commands: Commands, asset_server: Res<AssetServer>) {
                     TextColor(Color::srgb(0., 0., 0.)),
                 )
             );
+            parent.spawn(gen_generic_node()).with_child((gen_generic_description_text("Enter data in all fields".to_string()),HelperText));
+
 
 
             parent.spawn((gen_generic_button(),InteractiveType::Join)).with_child(gen_generic_button_text("Join".to_string()));
             parent.spawn((gen_generic_button(),InteractiveType::Exit)).with_child(gen_generic_button_text("Exit".to_string()));
+            
         })
         ;
 }

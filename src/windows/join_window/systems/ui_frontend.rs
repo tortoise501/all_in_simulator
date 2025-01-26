@@ -1,5 +1,6 @@
 
 use bevy::prelude::*;
+use events::UpdateHelperText;
 
 use super::*;
 
@@ -21,4 +22,17 @@ pub fn input_color_system(
             _ => border_color.0 = Color::BLACK,
         }
     }
+}
+
+pub fn helper_prompt_system(
+    mut helper_text: Query<(&mut Text),With<HelperText>>,
+    mut ev_helper_text: EventReader<UpdateHelperText>,
+) {
+    let mut text = helper_text.single_mut();
+    for ev in ev_helper_text.read() {
+        text.0 = ev.0.clone();
+    }
+    // if text.0 != helper_text_promot.0 {
+    //     text.0 = helper_text_promot.0.clone();
+    // }
 }

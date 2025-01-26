@@ -11,9 +11,11 @@ impl Plugin for JoinMenu {
         .add_systems(OnEnter(crate::GameState::LobbyList), systems::startup::setup_system)
         .add_systems(Update, systems::ui_backend::input_system.run_if(in_state(crate::GameState::LobbyList)))
         .add_systems(Update, systems::ui_backend::button_system.run_if(in_state(crate::GameState::LobbyList)))
-        .add_systems(Update, systems::ui_frontend::input_color_system)
-        .add_systems(Update, events::ev_systems::check_input_and_connect)
+        .add_systems(Update, systems::ui_frontend::input_color_system.run_if(in_state(crate::GameState::LobbyList)))
+        .add_systems(Update, events::ev_systems::check_input_and_connect.run_if(in_state(crate::GameState::LobbyList)))
+        .add_systems(Update, systems::ui_frontend::helper_prompt_system.run_if(in_state(crate::GameState::LobbyList)))
         .add_event::<events::ConnectTo>()
+        .add_event::<events::UpdateHelperText>()
         .insert_resource(IPInput("".to_string()))
         .insert_resource(PortInput("".to_string()))
         .insert_resource(PasswordInput("".to_string()))
@@ -36,6 +38,7 @@ enum InteractiveType {
 #[derive(Component)]
 struct Input;
 
+
 #[derive(Component)]
 enum TextType {
     IP,
@@ -43,6 +46,9 @@ enum TextType {
     Password,
 }
 
+
+#[derive(Component)]
+struct HelperText;
 
 
 
@@ -54,9 +60,6 @@ struct PortInput(String);
 
 #[derive(Resource, Clone)]
 struct PasswordInput(String);
-
-
-
 
 
 
