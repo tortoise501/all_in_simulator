@@ -2,8 +2,7 @@ mod windows;
 mod networking;
 mod global_events;
 // mod windows::main_menu;
-use bevy::{prelude::*, render::view::window};
-use serde::{Deserialize, Serialize};
+use bevy::prelude::*;
 fn main() {
     let _app = App::new().add_plugins(
         (DefaultPlugins,
@@ -11,18 +10,14 @@ fn main() {
             windows::join_window::JoinMenu,
             windows::lobby_window::Lobby,
             networking::client::ClientPlugin,
-            networking::server::ServerPlugin
+            networking::server::ServerPlugin,
+            global_events::ev_systems::GlobalEventPlugin,
         )
     )
     .add_systems(Startup, spawn_camera)
     .add_systems(Update, windows::button_color_system)
     .insert_state(GameState::MainMenu).enable_state_scoped_entities::<GameState>()
     .insert_state(networking::HostState::default())
-    .add_event::<global_events::ConnectToServer>()
-    .add_event::<global_events::CreateServer>()
-    .add_event::<global_events::UpdateLobby>()
-    .add_event::<global_events::SendServerMessage>()
-    .add_event::<global_events::SendClientMessage>()
     .run();
 }
 

@@ -1,10 +1,10 @@
-use bevy::{prelude::*, state::commands};
+use bevy::prelude::*;
 
-use crate::{global_events::UpdateLobby, windows::{gen_generic_description_text, lobby_window::PlayerList}};
+use crate::{global_events::UpdateLobby, windows::gen_generic_description_text};
 
 pub fn update_lobby_info(
     mut ev_update_lobby: EventReader<UpdateLobby>,
-    mut query: Query<(Entity, &Name)>,
+    query: Query<(Entity, &Name)>,
     mut commands: Commands,
 ) {
     // Find the entity with the "Player List" name

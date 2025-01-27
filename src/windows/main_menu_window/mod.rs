@@ -1,6 +1,6 @@
-use std::{f32::consts::PI, net::SocketAddr};
+use std::net::SocketAddr;
 
-use bevy::{a11y::AccessibilityNode, color::palettes::css::{DARK_GRAY, LIME, RED}, prelude::*, ui::widget::NodeImageMode};
+use bevy::{color::palettes::css::RED, prelude::*};
 
 pub struct MainMenu;
 
@@ -22,7 +22,7 @@ enum ButtonType {
 }
 
 
-fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_menu(mut commands: Commands) {
     commands
         .spawn((
             Name::new("Body"),
@@ -56,10 +56,9 @@ fn button_system(
         (Changed<Interaction>, With<Button>),
     >,
     mut next_game_state: ResMut<NextState<crate::GameState>>,
-    mut next_host_state: ResMut<NextState<HostState>>,//TODO move it to separate function
     mut ev_create_server: EventWriter<CreateServer>,//      ^
 ) {
-    for (interaction, mut color, mut border_color, children, button_type) in &mut interaction_query {
+    for (interaction, mut color, mut border_color, _children, button_type) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 *color = PRESSED_BUTTON.into();
@@ -100,7 +99,7 @@ const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 
-use crate::{global_events::CreateServer, networking::HostState};
+use crate::global_events::CreateServer;
 
 use super::gen_generic_button;
 use super::gen_generic_button_text;

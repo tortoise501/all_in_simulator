@@ -1,21 +1,18 @@
-use bevy::{prelude::*};
+use bevy::prelude::*;
 use bevy_renet2::netcode::{
-    ClientAuthentication, NativeSocket, NetcodeClientPlugin, NetcodeClientTransport, NetcodeServerPlugin, NetcodeServerTransport,
-    NetcodeTransportError, ServerAuthentication, ServerSetupConfig,
+    ClientAuthentication, NativeSocket, NetcodeClientPlugin, NetcodeClientTransport,
 };
 use bevy_renet2::prelude::{
-    client_connected, ClientId, ConnectionConfig, DefaultChannel, RenetClient, RenetClientPlugin, RenetServer, RenetServerPlugin,
-    ServerEvent,
+    ConnectionConfig, DefaultChannel, RenetClient, RenetClientPlugin,
 };
 
-use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::net::SocketAddr;
 use std::time::SystemTime;
-use std::{collections::HashMap, net::UdpSocket};
+use std::net::UdpSocket;
 
-use serde::{Deserialize, Serialize};
 
 use crate::global_events::{ConnectToServer, SendClientMessage, UpdateLobby};
-use crate::networking::{ClientMessages, ServerMessages};
+use crate::networking::ServerMessages;
 use crate::GameState;
 
 use super::HostState;
@@ -26,10 +23,10 @@ impl Plugin for ClientPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(RenetClientPlugin);
         app.add_plugins(NetcodeClientPlugin);
-        app.add_systems(OnEnter(HostState::Client), create_connection);
+        app.add_systems(OnEnter(HostState::Client), create_client);
         app.add_systems(OnExit(HostState::Client), stop_client);
-        app.add_systems(Update, before_create_connection);
-        app.add_systems(Update, (send_message_system,receive_message_system).run_if(in_state(HostState::Client).and(resource_exists::<RenetClient>)));
+        app.add_systems(Update, before_create_client);
+        app.add_systems(Update, (send_message_to_server_system,receive_message_system).run_if(in_state(HostState::Client).and(resource_exists::<RenetClient>)));
     }
 }
 
@@ -52,7 +49,7 @@ fn new_renet_client(server_addr: SocketAddr) -> (RenetClient, NetcodeClientTrans
     (client, transport)
 }
 
-fn create_connection(
+fn create_client(
     mut ev_connect_to_server:EventReader<ConnectToServer>,
     mut commands:Commands,
 ) {
@@ -60,13 +57,15 @@ fn create_connection(
     for ev in ev_connect_to_server.read() {
         info!("crating client - event");
         let (client, transport) = new_renet_client(ev.0.socket);
+        _ = ev.0.password;// needed to remove annoying warn
         commands.insert_resource(client);
         commands.insert_resource(transport);
         info!("crating client - complete");
     }
 }
 
-fn before_create_connection(
+/// Function needed to start client properly
+fn before_create_client(
     ev_connect_to_server:EventReader<ConnectToServer>,
     mut next_host_state: ResMut<NextState<HostState>>
 ) {
@@ -82,7 +81,7 @@ fn stop_client(
     commands.remove_resource::<NetcodeClientTransport>();
 }
 
-fn send_message_system(
+fn send_message_to_server_system (
     mut client: ResMut<RenetClient>,
     mut ev_client_messages: EventReader<SendClientMessage>
 ) {
@@ -90,29 +89,22 @@ fn send_message_system(
     for ev in ev_client_messages.read() {
         client.send_message(DefaultChannel::ReliableOrdered, bincode::serialize(&ev.0).unwrap());
     }
-    // Send a text message to the server
-    // client.send_message(DefaultChannel::ReliableOrdered, "client message");
 }
 
 fn receive_message_system(
     mut client: ResMut<RenetClient>,
     mut next_game_state: ResMut<NextState<GameState>>,
     mut ev_update_lobby_data: EventWriter<UpdateLobby>,
-    mut ev_client_messages: EventWriter<SendClientMessage>
 ) {
     while let Some(message) = client.receive_message(DefaultChannel::ReliableOrdered) {
-        // Handle received message
-        info!("received message:{:?}",message);
         match bincode::deserialize::<ServerMessages>(&message).unwrap() {
             ServerMessages::ConfirmConnection => {
-                info!("confirming connection:{:?}",message);
                 next_game_state.set(GameState::Lobby);
             },
-            ServerMessages::Test => info!("test message:{:?}",message),
+            ServerMessages::Test => info!("test message"),
             ServerMessages::UpdateLobbyData(data) => {
                 ev_update_lobby_data.send(UpdateLobby(data));
             }
-            _ => todo!(),
         }
     }
 }

@@ -1,9 +1,8 @@
 pub mod main_menu_window;
 pub mod lobby_window;
 pub mod join_window;
-use std::f32::consts::PI;
 
-use bevy::{a11y::AccessibilityNode, color::palettes::css::{DARK_GRAY, LIME, RED}, prelude::*, ui::widget::NodeImageMode};
+use bevy::{color::palettes::css::RED, prelude::*};
 
 
 
@@ -86,7 +85,7 @@ pub fn button_color_system (
         (Changed<Interaction>, With<GenericButton>),
     >,
 ) {
-    for (interaction, mut color, mut border_color, children) in &mut interaction_query {
+    for (interaction, mut color, mut border_color, _children) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 *color = PRESSED_BUTTON.into();

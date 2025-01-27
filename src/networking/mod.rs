@@ -1,15 +1,11 @@
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::net::SocketAddr;
 
 use bevy::prelude::*;
-use bevy_renet2::prelude::Bytes;
 use serde::{Deserialize, Serialize};
 use server::LobbyInfo;
 
 pub(super) mod client;
 pub(super) mod server;
-
-
-struct TestChannel;
 
 
 #[derive(Debug)]

@@ -1,11 +1,11 @@
-use std::{net::{SocketAddr, UdpSocket}, str::Bytes, thread::sleep, time::{Duration, SystemTime}};
+use std::{net::{SocketAddr, UdpSocket}, time::SystemTime};
 
-use bevy::{prelude::*};
+use bevy::prelude::*;
 use bevy_renet2::{netcode::NetcodeServerPlugin, prelude::{ConnectionConfig, DefaultChannel, RenetServer, RenetServerPlugin, ServerEvent}};
 use renet2_netcode::{NativeSocket, NetcodeServerTransport, ServerAuthentication, ServerSetupConfig};
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
-use crate::{global_events::{CreateServer, SendServerMessage, UpdateLobby}, networking::{client, ClientMessages, ServerMessages}, GameState};
+use crate::{global_events::{CreateServer, SendServerMessage, UpdateLobby}, networking::{ClientMessages, ServerMessages}};
 
 use super::HostState;
 
@@ -21,7 +21,7 @@ impl Plugin for ServerPlugin {
         app.add_systems(Update, before_create_server);
         app.add_systems(
             Update, 
-            (send_message_system,receive_message_system,handle_events_system).run_if(in_state(HostState::Server).and(resource_exists::<RenetServer>))
+            (broadcast_message_system,receive_message_system,handle_events_system).run_if(in_state(HostState::Server).and(resource_exists::<RenetServer>))
         );
     }
 }
@@ -45,6 +45,7 @@ fn new_renet_server(public_addr:SocketAddr) -> (RenetServer, NetcodeServerTransp
     (server, transport)
 }
 
+/// Function needed to start server properly
 fn before_create_server(
     ev_create_server:EventReader<CreateServer>,
     mut next_host_state: ResMut<NextState<HostState>>
@@ -79,23 +80,21 @@ fn stop_server(
 }
 
 
-
-fn send_message_system(
+/// broadcast messages to clients and also fires needed events for Host player
+fn broadcast_message_system(
     mut server: ResMut<RenetServer>,
     mut ev_send_server_messages: EventReader<SendServerMessage>,
     mut ev_update_lobby_player_list: EventWriter<UpdateLobby>
 ) {
-    let channel_id = 0;
-    // Send a text message for all clients
-    // The enum DefaultChannel describe the channels used by the default configuration
     for ev in ev_send_server_messages.read() {
         server.broadcast_message(DefaultChannel::ReliableOrdered, bincode::serialize(&ev.0).unwrap());
         match &ev.0 {
-            ServerMessages::UpdateLobbyData(lobby_info) => {ev_update_lobby_player_list.send(UpdateLobby(lobby_info.clone()));},
+            ServerMessages::UpdateLobbyData(lobby_info) => {
+                ev_update_lobby_player_list.send(UpdateLobby(lobby_info.clone()));
+            },
             _ => (),
         }
     }
-    // server.broadcast_message(DefaultChannel::ReliableOrdered, bincode::serialize(&ServerMessages::Test).unwrap());
 }
 
 fn receive_message_system(
@@ -103,22 +102,13 @@ fn receive_message_system(
     mut lobby_info: ResMut<LobbyInfo>,
     mut ev_send_server_messages: EventWriter<SendServerMessage>,
 ) {
-    // Receive message from all clients
     for client_id in server.clients_id() {
-        // while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered) {
-        //     info!("server received:{:?}",message)
-        //     // Handle received message
-        // }
         while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered) {
-            // Handle received message
-            info!("received message:{:?}",message);
             match bincode::deserialize::<ClientMessages>(&message).unwrap() {
                 ClientMessages::SendName(name) => {
                     lobby_info.players.push(LobbyPlayer { id: client_id, name: name });
-                    // ev_update_lobby_player_list.send(UpdateLobby(lobby_info.clone()));
                     ev_send_server_messages.send(SendServerMessage(ServerMessages::UpdateLobbyData(lobby_info.clone())));
                 },
-                // ClientMessages::Test => todo!(),
                 _ => todo!(),
             }
         }
@@ -130,7 +120,7 @@ fn handle_events_system(
     mut server_events: EventReader<ServerEvent>,
     mut server: ResMut<RenetServer>,
     mut ev_send_server_messages: EventWriter<SendServerMessage>,
-    mut lobby_info: ResMut<LobbyInfo>,
+    lobby_info: Res<LobbyInfo>,
 ) {
     for event in server_events.read() {
         match event {
@@ -138,7 +128,6 @@ fn handle_events_system(
                 info!("Client {client_id} connected");
                 server.send_message(*client_id, DefaultChannel::ReliableOrdered, bincode::serialize(&ServerMessages::ConfirmConnection).unwrap());
                 ev_send_server_messages.send(SendServerMessage(ServerMessages::UpdateLobbyData(lobby_info.clone())));
-                // server.broadcast_message(DefaultChannel::ReliableOrdered, bincode::serialize(&ServerMessages::UpdateLobbyData(crate::LobbyInfo { player_names: clients_vec })).unwrap());// temp for lobby player list
             }
             ServerEvent::ClientDisconnected { client_id, reason } => {
                 info!("Client {client_id} disconnected: {reason}");

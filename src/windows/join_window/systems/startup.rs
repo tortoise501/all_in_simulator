@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use super::*;
 
-pub fn setup_system(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_system(mut commands: Commands) {
     commands
         .spawn((
             Name::new("Lobby UI"),
@@ -18,133 +18,37 @@ pub fn setup_system(mut commands: Commands, asset_server: Res<AssetServer>) {
         .with_children(|parent| {
             //Ip input field
             parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter IP of your computer you want to join.".to_string()));
-            parent.spawn((
-                Input,
-                Button,
-                InteractiveType::IPAddressInput,
-                Node {
-                    width: Val::Px(500.0),
-                    height: Val::Px(50.0),
-                    border: UiRect::all(Val::Px(5.0)),
-                    // horizontally center child text
-                    justify_content: JustifyContent::Center,
-                    // vertically center child text
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                BorderColor(Color::BLACK),
-                BackgroundColor(Color::linear_rgb(100., 250., 200.)),
-    
-            )).with_child(
-                (
-                    TextType::IP,
-                    Text::new(""),
-                    TextFont {
-                        font_size: 33.0,
-                        ..default()
-                    },
-                    TextColor(Color::srgb(0., 0., 0.)),
-                )
+            parent.spawn(ui_components::input_field::input_field_box(InputFieldType::IP))
+            .with_child(
+                ui_components::input_field::input_field_text(TextType::IP)
             );
 
             //Port input field
             parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter network Port that server uses.".to_string()));
-            parent.spawn((
-                Input,
-                Button,
-                InteractiveType::PortInput,
-                Node {
-                    width: Val::Px(500.0),
-                    height: Val::Px(50.0),
-                    border: UiRect::all(Val::Px(5.0)),
-                    // horizontally center child text
-                    justify_content: JustifyContent::Center,
-                    // vertically center child text
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                BorderColor(Color::BLACK),
-                BackgroundColor(Color::linear_rgb(100., 250., 200.)),
-    
-            )).with_child(
-                (
-                    TextType::Port,
-                    Text::new(""),
-                    TextFont {
-                        font_size: 33.0,
-                        ..default()
-                    },
-                    TextColor(Color::srgb(0., 0., 0.)),
-                )
+            parent.spawn(ui_components::input_field::input_field_box(InputFieldType::Port))
+            .with_child(
+                ui_components::input_field::input_field_text(TextType::Port)
             );
 
             //Password input field
             parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter lobby password".to_string()));
-            parent.spawn((
-                Input,
-                Button,
-                InteractiveType::PasswordInput,
-                Node {
-                    width: Val::Px(500.0),
-                    height: Val::Px(50.0),
-                    border: UiRect::all(Val::Px(5.0)),
-                    // horizontally center child text
-                    justify_content: JustifyContent::Center,
-                    // vertically center child text
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                BorderColor(Color::BLACK),
-                BackgroundColor(Color::linear_rgb(100., 250., 200.)),
-    
-            )).with_child(
-                (
-                    TextType::Password,
-                    Text::new(""),
-                    TextFont {
-                        font_size: 33.0,
-                        ..default()
-                    },
-                    TextColor(Color::srgb(0., 0., 0.)),
-                )
+            parent.spawn(ui_components::input_field::input_field_box(InputFieldType::Password))
+            .with_child(
+                ui_components::input_field::input_field_text(TextType::Password)
             );
 
             parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter your username".to_string()));
-            parent.spawn((
-                Input,
-                Button,
-                InteractiveType::NameInput,
-                Node {
-                    width: Val::Px(500.0),
-                    height: Val::Px(50.0),
-                    border: UiRect::all(Val::Px(5.0)),
-                    // horizontally center child text
-                    justify_content: JustifyContent::Center,
-                    // vertically center child text
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                BorderColor(Color::BLACK),
-                BackgroundColor(Color::linear_rgb(100., 250., 200.)),
-    
-            )).with_child(
-                (
-                    TextType::Name,
-                    Text::new(""),
-                    TextFont {
-                        font_size: 33.0,
-                        ..default()
-                    },
-                    TextColor(Color::srgb(0., 0., 0.)),
-                )
+            parent.spawn(ui_components::input_field::input_field_box(InputFieldType::Name))
+            .with_child(
+                ui_components::input_field::input_field_text(TextType::Name)
             );
 
             parent.spawn(gen_generic_node()).with_child((gen_generic_description_text("Enter data in all fields".to_string()),HelperText));
 
 
 
-            parent.spawn((gen_generic_button(),InteractiveType::Join)).with_child(gen_generic_button_text("Join".to_string()));
-            parent.spawn((gen_generic_button(),InteractiveType::Exit)).with_child(gen_generic_button_text("Exit".to_string()));
+            parent.spawn((gen_generic_button(),ButtonType::Join)).with_child(gen_generic_button_text("Join".to_string()));
+            parent.spawn((gen_generic_button(),ButtonType::Exit)).with_child(gen_generic_button_text("Exit".to_string()));
             
         })
         ;
