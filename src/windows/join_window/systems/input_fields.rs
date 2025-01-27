@@ -75,7 +75,6 @@ pub fn input_field_selection_system (
     for (interaction, _children, pressed_input_field_type) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                info!("pressed");
                 match input_state.get() {
                     SelectedInputField::NotInput => next_input_state.set(SelectedInputField::Input(pressed_input_field_type.clone())),
                     SelectedInputField::Input(selected_input_field_type) => {

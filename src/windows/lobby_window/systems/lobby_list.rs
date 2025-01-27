@@ -7,19 +7,17 @@ pub fn update_lobby_info(
     query: Query<(Entity, &Name)>,
     mut commands: Commands,
 ) {
-    // Find the entity with the "Player List" name
+    if ev_update_lobby.is_empty() {
+        return;
+    }
+    info!("Updating lobby visual information");
     let player_list = query
         .iter()
         .find(|(_, name)| name.as_str() == "Player List")
         .map(|(entity, _)| entity);
-
-    // If no matching entity is found, exit early
+    
     if let Some(player_list) = player_list {
-        if !ev_update_lobby.is_empty() {
-            commands.entity(player_list).despawn_descendants();
-        }
-
-        // Iterate through the events and update the player list
+        commands.entity(player_list).despawn_descendants();
         for ev in ev_update_lobby.read() {
             for player_name in ev.0.players.clone() {
                 let child = commands.spawn(gen_generic_description_text(player_name.name)).id();

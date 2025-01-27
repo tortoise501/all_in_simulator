@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use bevy::prelude::Event;
 
-use crate::{networking::{ClientMessages, ServerMessages, TargetLobbyData,server::LobbyInfo}};
+use crate::networking::{ClientMessages, ServerMessages, TargetLobbyData,server::LobbyInfo};
 
 pub mod ev_systems;
 #[derive(Event)]

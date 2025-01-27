@@ -60,15 +60,13 @@ fn create_server(
     mut commands:Commands,
     mut lobby_info: ResMut<LobbyInfo>,
 ) {
-    info!("crating server - function");
     for ev in ev_create_server.read() {
         lobby_info.players.push(LobbyPlayer{ id: 0, name: "Host".to_string() });
-        info!("crating server - event");
         let (client, transport) = new_renet_server(ev.0);
     
         commands.insert_resource(client);
         commands.insert_resource(transport);
-        info!("crating server - complete");
+        info!("Created server");
     }
 }
 
@@ -91,6 +89,7 @@ fn broadcast_message_system(
         match &ev.0 {
             ServerMessages::UpdateLobbyData(lobby_info) => {
                 ev_update_lobby_player_list.send(UpdateLobby(lobby_info.clone()));
+                info!("Broadcasting UpdateLobbyData message");
             },
             _ => (),
         }
@@ -106,6 +105,7 @@ fn receive_message_system(
         while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered) {
             match bincode::deserialize::<ClientMessages>(&message).unwrap() {
                 ClientMessages::SendName(name) => {
+                    info!("Received name ({}) from client ({})",name,client_id);
                     lobby_info.players.push(LobbyPlayer { id: client_id, name: name });
                     ev_send_server_messages.send(SendServerMessage(ServerMessages::UpdateLobbyData(lobby_info.clone())));
                 },
@@ -127,7 +127,7 @@ fn handle_events_system(
             ServerEvent::ClientConnected { client_id } => {
                 info!("Client {client_id} connected");
                 server.send_message(*client_id, DefaultChannel::ReliableOrdered, bincode::serialize(&ServerMessages::ConfirmConnection).unwrap());
-                ev_send_server_messages.send(SendServerMessage(ServerMessages::UpdateLobbyData(lobby_info.clone())));
+                // ev_send_server_messages.send(SendServerMessage(ServerMessages::UpdateLobbyData(lobby_info.clone())));
             }
             ServerEvent::ClientDisconnected { client_id, reason } => {
                 info!("Client {client_id} disconnected: {reason}");

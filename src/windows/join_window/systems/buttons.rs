@@ -21,17 +21,16 @@ pub fn button_system (
             Interaction::Pressed => {
                 match button_type {
                     ButtonType::Join => {
-                        info!("Join");
+                        info!("Pressed JOIN");
                         ev_check_and_connect.send(events::TryConnectionTo(input.clone()));
                     },
                     ButtonType::Exit => {
+                        info!("Pressed EXIT");
                         next_game_state.set(crate::GameState::MainMenu);
                     },
                 }
             }
-            Interaction::Hovered => {
-            }
-            Interaction::None => {
+            _ => {
             }
         }
     }

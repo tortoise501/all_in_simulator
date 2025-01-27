@@ -53,14 +53,12 @@ fn create_client(
     mut ev_connect_to_server:EventReader<ConnectToServer>,
     mut commands:Commands,
 ) {
-    info!("crating client - function");
     for ev in ev_connect_to_server.read() {
-        info!("crating client - event");
         let (client, transport) = new_renet_client(ev.0.socket);
         _ = ev.0.password;// needed to remove annoying warn
         commands.insert_resource(client);
         commands.insert_resource(transport);
-        info!("crating client - complete");
+        info!("Client created");
     }
 }
 
@@ -101,7 +99,7 @@ fn receive_message_system(
             ServerMessages::ConfirmConnection => {
                 next_game_state.set(GameState::Lobby);
             },
-            ServerMessages::Test => info!("test message"),
+            ServerMessages::Test => info!("Received test message"),
             ServerMessages::UpdateLobbyData(data) => {
                 ev_update_lobby_data.send(UpdateLobby(data));
             }

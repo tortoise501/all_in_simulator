@@ -23,6 +23,7 @@ enum ButtonType {
 
 
 fn setup_menu(mut commands: Commands) {
+    info!("Setting up main menu");
     commands
         .spawn((
             Name::new("Body"),
@@ -65,16 +66,16 @@ fn button_system(
                 border_color.0 = RED.into();
                 match button_type {
                     ButtonType::Host => {
-                        info!("HOST");
+                        info!("Pressed HOST");
                         next_game_state.set(crate::GameState::Lobby);
                         ev_create_server.send(CreateServer("127.0.0.1:5501".parse::<SocketAddr>().unwrap()));
                     },
                     ButtonType::Join => {
-                        info!("JOIN");
+                        info!("Pressed JOIN");
                         next_game_state.set(crate::GameState::LobbyList);
                     },
                     ButtonType::Exit => {
-                        info!("Exit");
+                        info!("Pressed Exit");
                         todo!("Exiting")//TODO EXIT GAME
                     },
                 }

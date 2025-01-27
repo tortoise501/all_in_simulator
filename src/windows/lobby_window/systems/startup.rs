@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use crate::windows::lobby_window::ui_components;
 
 pub fn setup_menu(mut commands: Commands) {
+    info!("Setting up lobby menu");
     commands
         .spawn((
             Name::new("Body"),

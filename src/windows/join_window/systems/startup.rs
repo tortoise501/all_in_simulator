@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use super::*;
 
 pub fn setup_system(mut commands: Commands) {
+    info!("Setting up join lobby menu");
     commands
         .spawn((
             Name::new("Lobby UI"),
