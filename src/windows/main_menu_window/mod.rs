@@ -25,7 +25,7 @@ enum ButtonType {
 fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
-            Name::new("Button"),
+            Name::new("Body"),
             StateScoped(crate::GameState::MainMenu),
             Node {
             width: Val::Percent(100.0),

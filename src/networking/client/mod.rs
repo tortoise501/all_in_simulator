@@ -14,8 +14,8 @@ use std::{collections::HashMap, net::UdpSocket};
 
 use serde::{Deserialize, Serialize};
 
-use crate::global_events::{ConnectToServer, UpdateLobby};
-use crate::networking::ServerMessages;
+use crate::global_events::{ConnectToServer, SendClientMessage, UpdateLobby};
+use crate::networking::{ClientMessages, ServerMessages};
 use crate::GameState;
 
 use super::HostState;
@@ -60,7 +60,6 @@ fn create_connection(
     for ev in ev_connect_to_server.read() {
         info!("crating client - event");
         let (client, transport) = new_renet_client(ev.0.socket);
-    
         commands.insert_resource(client);
         commands.insert_resource(transport);
         info!("crating client - complete");
@@ -83,7 +82,14 @@ fn stop_client(
     commands.remove_resource::<NetcodeClientTransport>();
 }
 
-fn send_message_system(mut client: ResMut<RenetClient>) {
+fn send_message_system(
+    mut client: ResMut<RenetClient>,
+    mut ev_client_messages: EventReader<SendClientMessage>
+) {
+
+    for ev in ev_client_messages.read() {
+        client.send_message(DefaultChannel::ReliableOrdered, bincode::serialize(&ev.0).unwrap());
+    }
     // Send a text message to the server
     // client.send_message(DefaultChannel::ReliableOrdered, "client message");
 }
@@ -91,7 +97,8 @@ fn send_message_system(mut client: ResMut<RenetClient>) {
 fn receive_message_system(
     mut client: ResMut<RenetClient>,
     mut next_game_state: ResMut<NextState<GameState>>,
-    mut ev_update_lobby_data: EventWriter<UpdateLobby>
+    mut ev_update_lobby_data: EventWriter<UpdateLobby>,
+    mut ev_client_messages: EventWriter<SendClientMessage>
 ) {
     while let Some(message) = client.receive_message(DefaultChannel::ReliableOrdered) {
         // Handle received message

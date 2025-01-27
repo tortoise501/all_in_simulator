@@ -3,8 +3,8 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4};
 use bevy::prelude::*;
 use bevy_renet2::prelude::Bytes;
 use serde::{Deserialize, Serialize};
+use server::LobbyInfo;
 
-use crate::LobbyInfo;
 pub(super) mod client;
 pub(super) mod server;
 
@@ -31,4 +31,10 @@ pub enum ServerMessages {
     ConfirmConnection,
     Test,
     UpdateLobbyData(LobbyInfo)
+}
+
+#[derive(Serialize,Deserialize)]
+pub enum ClientMessages {
+    SendName(String),
+    Test,
 }

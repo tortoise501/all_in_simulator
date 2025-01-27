@@ -3,9 +3,9 @@ use std::{net::{SocketAddr, UdpSocket}, str::Bytes, thread::sleep, time::{Durati
 use bevy::{prelude::*};
 use bevy_renet2::{netcode::NetcodeServerPlugin, prelude::{ConnectionConfig, DefaultChannel, RenetServer, RenetServerPlugin, ServerEvent}};
 use renet2_netcode::{NativeSocket, NetcodeServerTransport, ServerAuthentication, ServerSetupConfig};
-use serde::{Serialize, Serializer};
+use serde::{Deserialize, Serialize, Serializer};
 
-use crate::{global_events::{CreateServer, SendServerMessage, UpdateLobby}, networking::{client, ServerMessages}, GameState};
+use crate::{global_events::{CreateServer, SendServerMessage, UpdateLobby}, networking::{client, ClientMessages, ServerMessages}, GameState};
 
 use super::HostState;
 
@@ -15,6 +15,7 @@ impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(RenetServerPlugin);
         app.add_plugins(NetcodeServerPlugin);
+        app.insert_resource(LobbyInfo{players:Vec::new()});
         app.add_systems(OnEnter(HostState::Server), create_server);
         app.add_systems(OnExit(HostState::Server), stop_server);
         app.add_systems(Update, before_create_server);
@@ -56,9 +57,11 @@ fn before_create_server(
 fn create_server(
     mut ev_create_server:EventReader<CreateServer>,
     mut commands:Commands,
+    mut lobby_info: ResMut<LobbyInfo>,
 ) {
     info!("crating server - function");
     for ev in ev_create_server.read() {
+        lobby_info.players.push(LobbyPlayer{ id: 0, name: "Host".to_string() });
         info!("crating server - event");
         let (client, transport) = new_renet_server(ev.0);
     
@@ -95,33 +98,46 @@ fn send_message_system(
     // server.broadcast_message(DefaultChannel::ReliableOrdered, bincode::serialize(&ServerMessages::Test).unwrap());
 }
 
-fn receive_message_system(mut server: ResMut<RenetServer>) {
+fn receive_message_system(
+    mut server: ResMut<RenetServer>,
+    mut lobby_info: ResMut<LobbyInfo>,
+    mut ev_send_server_messages: EventWriter<SendServerMessage>,
+) {
     // Receive message from all clients
     for client_id in server.clients_id() {
+        // while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered) {
+        //     info!("server received:{:?}",message)
+        //     // Handle received message
+        // }
         while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered) {
-            info!("server received:{:?}",message)
             // Handle received message
+            info!("received message:{:?}",message);
+            match bincode::deserialize::<ClientMessages>(&message).unwrap() {
+                ClientMessages::SendName(name) => {
+                    lobby_info.players.push(LobbyPlayer { id: client_id, name: name });
+                    // ev_update_lobby_player_list.send(UpdateLobby(lobby_info.clone()));
+                    ev_send_server_messages.send(SendServerMessage(ServerMessages::UpdateLobbyData(lobby_info.clone())));
+                },
+                // ClientMessages::Test => todo!(),
+                _ => todo!(),
+            }
         }
     }
+    
 }
 
 fn handle_events_system(
     mut server_events: EventReader<ServerEvent>,
     mut server: ResMut<RenetServer>,
-    mut ev_send_server_messages: EventWriter<SendServerMessage>
+    mut ev_send_server_messages: EventWriter<SendServerMessage>,
+    mut lobby_info: ResMut<LobbyInfo>,
 ) {
     for event in server_events.read() {
         match event {
             ServerEvent::ClientConnected { client_id } => {
                 info!("Client {client_id} connected");
                 server.send_message(*client_id, DefaultChannel::ReliableOrdered, bincode::serialize(&ServerMessages::ConfirmConnection).unwrap());
-                let clients = server.clients_id_iter();// temp for lobby player list
-                let mut clients_vec: Vec<String> = Vec::new();// temp for lobby player list
-                clients_vec.push("Host".to_string());
-                for client in clients {// temp for lobby player list
-                    clients_vec.push(client.to_string());// temp for lobby player list
-                }// temp for lobby player list
-                ev_send_server_messages.send(SendServerMessage(ServerMessages::UpdateLobbyData(crate::LobbyInfo { player_names: clients_vec })));
+                ev_send_server_messages.send(SendServerMessage(ServerMessages::UpdateLobbyData(lobby_info.clone())));
                 // server.broadcast_message(DefaultChannel::ReliableOrdered, bincode::serialize(&ServerMessages::UpdateLobbyData(crate::LobbyInfo { player_names: clients_vec })).unwrap());// temp for lobby player list
             }
             ServerEvent::ClientDisconnected { client_id, reason } => {
@@ -129,4 +145,19 @@ fn handle_events_system(
             }
         }
     }
+}
+
+
+
+
+#[derive(Resource, Clone,Serialize,Deserialize)]
+pub struct LobbyInfo {
+    pub players: Vec<LobbyPlayer>
+}
+
+
+#[derive(Clone,Serialize,Deserialize)]
+pub struct LobbyPlayer {
+    pub id:u64,
+    pub name:String,
 }

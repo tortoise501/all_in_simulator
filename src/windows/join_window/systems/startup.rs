@@ -108,6 +108,37 @@ pub fn setup_system(mut commands: Commands, asset_server: Res<AssetServer>) {
                     TextColor(Color::srgb(0., 0., 0.)),
                 )
             );
+
+            parent.spawn(gen_generic_node()).with_child(gen_generic_description_text("Enter your username".to_string()));
+            parent.spawn((
+                Input,
+                Button,
+                InteractiveType::NameInput,
+                Node {
+                    width: Val::Px(500.0),
+                    height: Val::Px(50.0),
+                    border: UiRect::all(Val::Px(5.0)),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                BorderColor(Color::BLACK),
+                BackgroundColor(Color::linear_rgb(100., 250., 200.)),
+    
+            )).with_child(
+                (
+                    TextType::Name,
+                    Text::new(""),
+                    TextFont {
+                        font_size: 33.0,
+                        ..default()
+                    },
+                    TextColor(Color::srgb(0., 0., 0.)),
+                )
+            );
+
             parent.spawn(gen_generic_node()).with_child((gen_generic_description_text("Enter data in all fields".to_string()),HelperText));
 
 

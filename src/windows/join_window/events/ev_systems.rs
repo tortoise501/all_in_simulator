@@ -1,6 +1,6 @@
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
-use crate::{global_events::ConnectToServer, networking::TargetLobbyData};
+use crate::{global_events::{ConnectToServer, SendClientMessage}, networking::TargetLobbyData};
 
 use super::*;
 use bevy::prelude::*;
@@ -8,7 +8,8 @@ use bevy::prelude::*;
 pub(crate) fn check_input_and_connect (
     mut ev_check_and_connect: EventReader<ConnectTo>,
     mut ev_connect_to_server: EventWriter<ConnectToServer>,
-    mut ev_helper_text: EventWriter<UpdateHelperText>
+    mut ev_helper_text: EventWriter<UpdateHelperText>,
+    mut ev_send_messages: EventWriter<SendClientMessage>,
 ) {
     for ev in ev_check_and_connect.read() {
         let target_lobby = TargetLobbyData {
@@ -37,7 +38,7 @@ pub(crate) fn check_input_and_connect (
             password: ev.0.password.clone(),
         };
         println!("Joining {:?}",target_lobby);
-        //TODO connect to server
         ev_connect_to_server.send(ConnectToServer(target_lobby));
+        ev_send_messages.send(SendClientMessage(crate::networking::ClientMessages::SendName(ev.0.name.clone())));
     }
 }

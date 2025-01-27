@@ -21,8 +21,8 @@ pub fn update_lobby_info(
 
         // Iterate through the events and update the player list
         for ev in ev_update_lobby.read() {
-            for player_name in ev.0.player_names.clone() {
-                let child = commands.spawn(gen_generic_description_text(player_name)).id();
+            for player_name in ev.0.players.clone() {
+                let child = commands.spawn(gen_generic_description_text(player_name.name)).id();
                 commands.entity(player_list).add_child(child);
             }
         }

@@ -30,6 +30,7 @@ pub fn input_system(
                     InputState::IP => inputs.ip_addr.push_str(&input),
                     InputState::Port => inputs.port.push_str(&input),
                     InputState::Password => inputs.password.push_str(&input),
+                    InputState::Name => inputs.name.push_str(&input),
                 }
             },
             Key::Backspace => {
@@ -38,6 +39,7 @@ pub fn input_system(
                     InputState::IP => {inputs.ip_addr.pop();},
                     InputState::Port => {inputs.port.pop();},
                     InputState::Password => {inputs.password.pop();},
+                    InputState::Name => {inputs.name.pop();},
                 };
             }
             _ => {}
@@ -47,6 +49,7 @@ pub fn input_system(
                 TextType::IP => text.0 = inputs.ip_addr.to_string(),
                 TextType::Port => text.0 = inputs.port.to_string(),
                 TextType::Password => text.0 = String::from_utf8(vec![b'*'; inputs.password.len()]).unwrap(),
+                TextType::Name => text.0 = inputs.name.to_string(),
             }
         }
     }
@@ -85,7 +88,8 @@ pub fn button_system (
                     InteractiveType::IPAddressInput if *input_state.get() != InputState::IP => next_input_state.set(InputState::IP),
                     InteractiveType::PortInput if *input_state.get() != InputState::Port => next_input_state.set(InputState::Port),
                     InteractiveType::PasswordInput if *input_state.get() != InputState::Password => next_input_state.set(InputState::Password),
-                    _ => {}
+                    InteractiveType::NameInput if *input_state.get() != InputState::Name => next_input_state.set(InputState::Name),
+                    _ => ()
                 }
             }
             Interaction::Hovered => {

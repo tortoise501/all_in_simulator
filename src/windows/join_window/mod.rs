@@ -19,7 +19,7 @@ impl Plugin for JoinMenu {
         // .insert_resource(IPInput("".to_string()))
         // .insert_resource(PortInput("".to_string()))
         // .insert_resource(PasswordInput("".to_string()))
-        .insert_resource(JoinInputs{ ip_addr: "".to_string(), port: "".to_string(), password: "".to_string() })
+        .insert_resource(JoinInputs{ ip_addr: "".to_string(), port: "".to_string(), password: "".to_string(), name: "".to_string() })
         .insert_state(InputState::NotInput)
         ;
 
@@ -34,6 +34,7 @@ enum InteractiveType {
     IPAddressInput,
     PortInput,
     PasswordInput,
+    NameInput
 }
 
 #[derive(Component)]
@@ -45,6 +46,7 @@ enum TextType {
     IP,
     Port,
     Password,
+    Name,
 }
 
 
@@ -67,6 +69,7 @@ struct JoinInputs {
     ip_addr:String,
     port:String,
     password:String,
+    name:String
 }
 
 
@@ -81,5 +84,6 @@ enum InputState {
     IP,
     Port,
     Password,
+    Name
 }
 use super::gen_generic_button_text;

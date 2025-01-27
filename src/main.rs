@@ -22,6 +22,7 @@ fn main() {
     .add_event::<global_events::CreateServer>()
     .add_event::<global_events::UpdateLobby>()
     .add_event::<global_events::SendServerMessage>()
+    .add_event::<global_events::SendClientMessage>()
     .run();
 }
 
@@ -31,11 +32,6 @@ pub enum GameState {
     LobbyList,
     Lobby,
     InGame,
-}
-
-#[derive(Serialize,Deserialize,Clone)]
-pub struct LobbyInfo {
-    player_names: Vec<String>,
 }
 
 fn spawn_camera(mut commands: Commands) {
