@@ -9,6 +9,7 @@ bevy = { version = "0.15.0", features = ["dynamic_linking"] }
 serde = {version = "1.0.217"}
 bevy_renet2 = {version = "0.1.1", features = ["netcode"]}
 renet2_netcode = {version = "0.1.1", features = ["native_transport"]}
+bincode ={ version = "1.3.3"}
 # renet2_netcode = {version = "0.1.0",default-features = false}
 
 

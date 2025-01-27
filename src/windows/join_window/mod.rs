@@ -16,9 +16,10 @@ impl Plugin for JoinMenu {
         .add_systems(Update, systems::ui_frontend::helper_prompt_system.run_if(in_state(crate::GameState::LobbyList)))
         .add_event::<events::ConnectTo>()
         .add_event::<events::UpdateHelperText>()
-        .insert_resource(IPInput("".to_string()))
-        .insert_resource(PortInput("".to_string()))
-        .insert_resource(PasswordInput("".to_string()))
+        // .insert_resource(IPInput("".to_string()))
+        // .insert_resource(PortInput("".to_string()))
+        // .insert_resource(PasswordInput("".to_string()))
+        .insert_resource(JoinInputs{ ip_addr: "".to_string(), port: "".to_string(), password: "".to_string() })
         .insert_state(InputState::NotInput)
         ;
 
@@ -52,14 +53,21 @@ struct HelperText;
 
 
 
-#[derive(Resource, Clone)]
-struct IPInput(String);
+// #[derive(Resource, Clone)]
+// struct IPInput(String);
+
+// #[derive(Resource, Clone)]
+// struct PortInput(String);
+
+// #[derive(Resource, Clone)]
+// struct PasswordInput(String);
 
 #[derive(Resource, Clone)]
-struct PortInput(String);
-
-#[derive(Resource, Clone)]
-struct PasswordInput(String);
+struct JoinInputs {
+    ip_addr:String,
+    port:String,
+    password:String,
+}
 
 
 

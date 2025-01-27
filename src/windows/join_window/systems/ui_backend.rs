@@ -6,9 +6,10 @@ use super::*;
 
 pub fn input_system(
     mut evr_kbd: EventReader<KeyboardInput>,
-    mut input_ip: ResMut<IPInput>,
-    mut input_port: ResMut<PortInput>,
-    mut input_password: ResMut<PasswordInput>,
+    // mut input_ip: ResMut<IPInput>,
+    // mut input_port: ResMut<PortInput>,
+    // mut input_password: ResMut<PasswordInput>,
+    mut inputs: ResMut<JoinInputs>,
     input_state: Res<State<InputState>>,
     mut text_q: Query<(&mut Text, &TextType)>,
 ) {
@@ -26,26 +27,26 @@ pub fn input_system(
                 }
                 match input_state.get() {
                     InputState::NotInput => {},
-                    InputState::IP => input_ip.0.push_str(&input),
-                    InputState::Port => input_port.0.push_str(&input),
-                    InputState::Password => input_password.0.push_str(&input),
+                    InputState::IP => inputs.ip_addr.push_str(&input),
+                    InputState::Port => inputs.port.push_str(&input),
+                    InputState::Password => inputs.password.push_str(&input),
                 }
             },
             Key::Backspace => {
                 _ = match input_state.get() {
                     InputState::NotInput => {},
-                    InputState::IP => {input_ip.0.pop();},
-                    InputState::Port => {input_port.0.pop();},
-                    InputState::Password => {input_password.0.pop();},
+                    InputState::IP => {inputs.ip_addr.pop();},
+                    InputState::Port => {inputs.port.pop();},
+                    InputState::Password => {inputs.password.pop();},
                 };
             }
             _ => {}
         }
         for (mut text, text_type) in &mut text_q {
             match text_type {
-                TextType::IP => text.0 = input_ip.0.to_string(),
-                TextType::Port => text.0 = input_port.0.to_string(),
-                TextType::Password => text.0 = String::from_utf8(vec![b'*'; input_password.0.len()]).unwrap(),
+                TextType::IP => text.0 = inputs.ip_addr.to_string(),
+                TextType::Port => text.0 = inputs.port.to_string(),
+                TextType::Password => text.0 = String::from_utf8(vec![b'*'; inputs.password.len()]).unwrap(),
             }
         }
     }
@@ -65,9 +66,10 @@ pub fn button_system (
     mut next_game_state: ResMut<NextState<crate::GameState>>,
     mut next_host_state: ResMut<NextState<HostState>>,
     mut ev_check_and_connect: EventWriter<events::ConnectTo>,
-    input_ip: Res<IPInput>,
-    input_port: Res<PortInput>,
-    input_password: Res<PasswordInput>,
+    input: Res<JoinInputs>,
+    // input_ip: Res<IPInput>,
+    // input_port: Res<PortInput>,
+    // input_password: Res<PasswordInput>,
 ) {
     for (interaction, children, button_type) in &mut interaction_query {
         match *interaction {
@@ -75,8 +77,7 @@ pub fn button_system (
                 match button_type {
                     InteractiveType::Join => {
                         info!("Join");
-                        ev_check_and_connect.send(events::ConnectTo(input_ip.clone(),input_port.clone(),input_password.clone()));
-                        next_host_state.set(HostState::Client);
+                        ev_check_and_connect.send(events::ConnectTo(input.clone()));
                     },
                     InteractiveType::Exit => {
                         next_game_state.set(crate::GameState::MainMenu);

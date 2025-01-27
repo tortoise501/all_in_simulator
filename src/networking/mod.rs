@@ -1,6 +1,10 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use bevy::prelude::*;
+use bevy_renet2::prelude::Bytes;
+use serde::{Deserialize, Serialize};
+
+use crate::LobbyInfo;
 pub(super) mod client;
 pub(super) mod server;
 
@@ -20,4 +24,11 @@ pub(super) enum HostState {
     NotPaying,
     Server,
     Client
+}
+
+#[derive(Serialize,Deserialize)]
+pub enum ServerMessages {
+    ConfirmConnection,
+    Test,
+    UpdateLobbyData(LobbyInfo)
 }

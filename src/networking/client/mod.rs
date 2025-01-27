@@ -14,7 +14,8 @@ use std::{collections::HashMap, net::UdpSocket};
 
 use serde::{Deserialize, Serialize};
 
-use crate::global_events::ConnectToServer;
+use crate::global_events::{ConnectToServer, UpdateLobby};
+use crate::networking::ServerMessages;
 use crate::GameState;
 
 use super::HostState;
@@ -27,6 +28,7 @@ impl Plugin for ClientPlugin {
         app.add_plugins(NetcodeClientPlugin);
         app.add_systems(OnEnter(HostState::Client), create_connection);
         app.add_systems(OnExit(HostState::Client), stop_client);
+        app.add_systems(Update, before_create_connection);
         app.add_systems(Update, (send_message_system,receive_message_system).run_if(in_state(HostState::Client).and(resource_exists::<RenetClient>)));
     }
 }
@@ -65,6 +67,15 @@ fn create_connection(
     }
 }
 
+fn before_create_connection(
+    ev_connect_to_server:EventReader<ConnectToServer>,
+    mut next_host_state: ResMut<NextState<HostState>>
+) {
+    if !ev_connect_to_server.is_empty(){
+        next_host_state.set(HostState::Client);
+    }
+}
+
 fn stop_client(
     mut commands:Commands
 ) {
@@ -74,12 +85,27 @@ fn stop_client(
 
 fn send_message_system(mut client: ResMut<RenetClient>) {
     // Send a text message to the server
-    client.send_message(DefaultChannel::ReliableOrdered, "client message");
+    // client.send_message(DefaultChannel::ReliableOrdered, "client message");
 }
 
-fn receive_message_system(mut client: ResMut<RenetClient>) {
+fn receive_message_system(
+    mut client: ResMut<RenetClient>,
+    mut next_game_state: ResMut<NextState<GameState>>,
+    mut ev_update_lobby_data: EventWriter<UpdateLobby>
+) {
     while let Some(message) = client.receive_message(DefaultChannel::ReliableOrdered) {
         // Handle received message
         info!("received message:{:?}",message);
+        match bincode::deserialize::<ServerMessages>(&message).unwrap() {
+            ServerMessages::ConfirmConnection => {
+                info!("confirming connection:{:?}",message);
+                next_game_state.set(GameState::Lobby);
+            },
+            ServerMessages::Test => info!("test message:{:?}",message),
+            ServerMessages::UpdateLobbyData(data) => {
+                ev_update_lobby_data.send(UpdateLobby(data));
+            }
+            _ => todo!(),
+        }
     }
 }

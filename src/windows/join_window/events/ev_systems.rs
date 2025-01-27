@@ -26,7 +26,7 @@ pub(crate) fn check_input_and_connect (
             //         return;
             //     },
             // },
-            socket: match format!("{}:{}",ev.0.0,ev.1.0).parse::<SocketAddr>() {
+            socket: match format!("{}:{}",ev.0.ip_addr,ev.0.port).parse::<SocketAddr>() {
                 Ok(socket) => socket,
                 Err(err) => {
                             // println!("{}",err);
@@ -34,7 +34,7 @@ pub(crate) fn check_input_and_connect (
                             return;
                         },
             },
-            password: ev.2.0.clone(),
+            password: ev.0.password.clone(),
         };
         println!("Joining {:?}",target_lobby);
         //TODO connect to server

@@ -68,7 +68,6 @@ fn button_system(
                     ButtonType::Host => {
                         info!("HOST");
                         next_game_state.set(crate::GameState::Lobby);
-                        next_host_state.set(HostState::Server);//TODO HOST GAME
                         ev_create_server.send(CreateServer("127.0.0.1:5501".parse::<SocketAddr>().unwrap()));
                     },
                     ButtonType::Join => {
